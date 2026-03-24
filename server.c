@@ -6,7 +6,7 @@
 /*   By: asadik <asadik@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/22 16:11:48 by asadik            #+#    #+#             */
-/*   Updated: 2026/03/24 15:13:44 by asadik           ###   ########.fr       */
+/*   Updated: 2026/03/24 18:26:26 by asadik           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,10 +17,51 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <signal.h>
+#include <stdbool.h>
 
 t_state	g_state;
 
-void	signal_handler(int signum, siginfo_t *info, void *_)
+static bool	next_char(void)
+{
+	char	*current;
+	char	*temp;
+
+	if (!g_state.str)
+	{
+		g_state.str = ft_calloc(2, sizeof(char));
+		if (!g_state.str)
+			return (false);
+		g_state.str[0] = g_state.c;
+		g_state.str[1] = '\0';
+		return (true);
+	}
+	current = ft_calloc(2, sizeof(char));
+	if (!current)
+		return (false);
+	current[0] = g_state.c;
+	current[1] = '\0';
+	temp = ft_strjoin(g_state.str, current);
+	if (!temp)
+		return (free(current), false);
+	free(g_state.str);
+	free(current);
+	return (g_state.str = temp, true);
+}
+
+static void	print(void)
+{
+	ft_printf("%s", g_state.str);
+	free(g_state.str);
+	g_state.str = NULL;
+}
+
+static void	ft_free(void *p)
+{
+	free(p);
+	p = NULL;
+}
+
+static void	signal_handler(int signum, siginfo_t *info, void *_)
 {
 	(void)_;
 	if (info->si_pid != g_state.client_pid)
@@ -28,6 +69,8 @@ void	signal_handler(int signum, siginfo_t *info, void *_)
 		g_state.client_pid = info->si_pid;
 		g_state.bit = 0;
 		g_state.c = 0;
+		if (g_state.str)
+			ft_free(g_state.str);
 	}
 	if (signum == SIGUSR1)
 		g_state.c = g_state.c & ~(1 << g_state.bit);
@@ -36,7 +79,10 @@ void	signal_handler(int signum, siginfo_t *info, void *_)
 	g_state.bit++;
 	if (g_state.bit == 8)
 	{
-		ft_putchar_fd(g_state.c, 1);
+		if (!next_char())
+			exit(0);
+		if (g_state.c == '\0')
+			print();
 		g_state.c = 0;
 		g_state.bit = 0;
 	}
@@ -53,6 +99,7 @@ int	main(void)
 	sa.sa_flags = SA_SIGINFO;
 	sigaction(SIGUSR1, &sa, NULL);
 	sigaction(SIGUSR2, &sa, NULL);
+	g_state.str = NULL;
 	g_state.bit = 0;
 	g_state.c = 0;
 	while (1)
