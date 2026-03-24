@@ -28,11 +28,11 @@ $(LIBFT): FORCE
 FORCE:
 
 clean:
-	rm -f $(OBJS) $(DEPS)
+	rm -f $(OBJS_SERVER) $(DEPS_SERVER) $(OBJS_CLIENT) $(DEPS_CLIENT)
 	$(MAKE) -C $(LIBFT_DIR) clean
 
 fclean: clean
-	rm -f $(NAME)
+	rm -f $(NAME_SERVER) $(NAME_CLIENT)
 	$(MAKE) -C $(LIBFT_DIR) fclean
 
 re: fclean all
