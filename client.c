@@ -6,7 +6,7 @@
 /*   By: asadik <asadik@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/22 17:07:30 by asadik            #+#    #+#             */
-/*   Updated: 2026/03/24 15:15:29 by asadik           ###   ########.fr       */
+/*   Updated: 2026/03/24 15:22:34 by asadik           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,6 +49,8 @@ int	main(int argc, char **argv)
 	if (server_pid.type == INT)
 	{
 		g_state.server_pid = server_pid.value.n;
+		if (g_state.server_pid < 1)
+			return (ft_printf("Server PID Error: Please enter a PID over 0."));
 		g_state.bit = 0;
 		g_state.str = argv[2];
 		send_char(SIGUSR1);
