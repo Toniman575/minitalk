@@ -6,7 +6,7 @@
 /*   By: asadik <asadik@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/22 16:11:48 by asadik            #+#    #+#             */
-/*   Updated: 2026/03/24 14:29:15 by asadik           ###   ########.fr       */
+/*   Updated: 2026/03/24 15:13:44 by asadik           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 #include "libft/libft.h"
 #include "server.h"
 
+#include <stdlib.h>
 #include <unistd.h>
 #include <signal.h>
 
@@ -55,6 +56,7 @@ int	main(void)
 	g_state.bit = 0;
 	g_state.c = 0;
 	while (1)
-		pause();
+		if (!sleep(30))
+			exit(0);
 	return (0);
 }

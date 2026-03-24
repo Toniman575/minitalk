@@ -6,7 +6,7 @@
 /*   By: asadik <asadik@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/22 17:07:30 by asadik            #+#    #+#             */
-/*   Updated: 2026/03/24 14:31:33 by asadik           ###   ########.fr       */
+/*   Updated: 2026/03/24 15:15:29 by asadik           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,19 +22,17 @@ t_state	g_state;
 
 void	send_char(int sig)
 {
-	int	index;
 	int	bit;
 
 	(void)sig;
-	index = g_state.index;
 	bit = g_state.bit;
 	g_state.bit++;
 	if (g_state.bit == 8)
 	{
-		g_state.index++;
+		g_state.str++;
 		g_state.bit = 0;
 	}
-	if ((g_state.str[index] >> bit) & 1)
+	if ((*g_state.str >> bit) & 1)
 		kill(g_state.server_pid, SIGUSR2);
 	else
 		kill(g_state.server_pid, SIGUSR1);
@@ -52,13 +50,13 @@ int	main(int argc, char **argv)
 	{
 		g_state.server_pid = server_pid.value.n;
 		g_state.bit = 0;
-		g_state.index = 0;
 		g_state.str = argv[2];
 		send_char(SIGUSR1);
 	}
 	else
 		return (ft_printf("Server PID Error: %s\n", server_pid.value.error)
 			, 0);
-	while (g_state.str[g_state.index])
-		pause();
+	while (*g_state.str)
+		if (!sleep(2))
+			return (ft_printf("No response from Server."));
 }
