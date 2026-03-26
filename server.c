@@ -6,7 +6,7 @@
 /*   By: asadik <asadik@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/22 16:11:48 by asadik            #+#    #+#             */
-/*   Updated: 2026/03/24 18:26:26 by asadik           ###   ########.fr       */
+/*   Updated: 2026/03/26 22:30:44 by asadik           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ t_state	g_state;
 
 static bool	next_char(void)
 {
-	char	*current;
+	char	current[2];
 	char	*temp;
 
 	if (!g_state.str)
@@ -35,16 +35,12 @@ static bool	next_char(void)
 		g_state.str[1] = '\0';
 		return (true);
 	}
-	current = ft_calloc(2, sizeof(char));
-	if (!current)
-		return (false);
 	current[0] = g_state.c;
 	current[1] = '\0';
 	temp = ft_strjoin(g_state.str, current);
 	if (!temp)
-		return (free(current), false);
+		return (false);
 	free(g_state.str);
-	free(current);
 	return (g_state.str = temp, true);
 }
 
