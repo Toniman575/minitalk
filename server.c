@@ -6,7 +6,7 @@
 /*   By: asadik <asadik@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/22 16:11:48 by asadik            #+#    #+#             */
-/*   Updated: 2026/03/26 22:30:44 by asadik           ###   ########.fr       */
+/*   Updated: 2026/03/27 19:50:21 by asadik           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,17 +44,16 @@ static bool	next_char(void)
 	return (g_state.str = temp, true);
 }
 
+static void	ft_free(void **p)
+{
+	free(*p);
+	*p = NULL;
+}
+
 static void	print(void)
 {
 	ft_printf("%s", g_state.str);
-	free(g_state.str);
-	g_state.str = NULL;
-}
-
-static void	ft_free(void *p)
-{
-	free(p);
-	p = NULL;
+	ft_free((void **)&g_state.str);
 }
 
 static void	signal_handler(int signum, siginfo_t *info, void *_)
@@ -66,7 +65,7 @@ static void	signal_handler(int signum, siginfo_t *info, void *_)
 		g_state.bit = 0;
 		g_state.c = 0;
 		if (g_state.str)
-			ft_free(g_state.str);
+			ft_free((void **)&g_state.str);
 	}
 	if (signum == SIGUSR1)
 		g_state.c = g_state.c & ~(1 << g_state.bit);
