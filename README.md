@@ -13,3 +13,4 @@ If the server does not receive a message for 30 seconds it will exit gracefully.
 [Global Variables in C](https://www.geeksforgeeks.org/c/global-variables-in-c/).<br>
 [Signals in C language](https://www.geeksforgeeks.org/c/signals-c-language/).
 [Set, Clear and Toggle a Given Bit of a Number in C](https://www.geeksforgeeks.org/dsa/set-clear-and-toggle-a-given-bit-of-a-number-in-c/).
+Discussions with peers and AI helped me figure out async safety.

@@ -6,7 +6,7 @@
 /*   By: asadik <asadik@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/22 16:11:48 by asadik            #+#    #+#             */
-/*   Updated: 2026/03/29 17:51:09 by asadik           ###   ########.fr       */
+/*   Updated: 2026/03/29 20:07:09 by asadik           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,86 +19,101 @@
 #include <signal.h>
 #include <stdbool.h>
 
-static t_state	g_state;
+static volatile t_state	g_state;
 
-static bool	next_char(void)
+static void	append_to_buffer(char c)
 {
-	char	current[2];
-	char	*temp;
+	char	*new_buf;
+	int		i;
 
-	if (!g_state.str)
+	if (g_state.index >= g_state.capacity)
 	{
-		g_state.str = ft_calloc(2, sizeof(char));
-		if (!g_state.str)
-			return (false);
-		g_state.str[0] = g_state.c;
-		g_state.str[1] = '\0';
-		return (true);
+		if (g_state.capacity == 0)
+			g_state.capacity = 1024;
+		else
+			g_state.capacity *= 2;
+		new_buf = malloc(g_state.capacity);
+		if (!new_buf)
+			exit(1);
+		i = -1;
+		while (++i < g_state.index)
+			new_buf[i] = g_state.buffer[i];
+		free(g_state.buffer);
+		g_state.buffer = new_buf;
 	}
-	current[0] = g_state.c;
-	current[1] = '\0';
-	temp = ft_strjoin(g_state.str, current);
-	if (!temp)
-		return (false);
-	free(g_state.str);
-	return (g_state.str = temp, true);
-}
-
-static void	ft_free(void **p)
-{
-	free(*p);
-	*p = NULL;
-}
-
-static void	print(void)
-{
-	ft_printf("%s", g_state.str);
-	ft_free((void **)&g_state.str);
+	g_state.buffer[g_state.index++] = c;
 }
 
 static void	signal_handler(int signum, siginfo_t *info, void *_)
 {
 	(void)_;
-	if (info->si_pid != g_state.client_pid)
+	g_state.g_received_sig = signum;
+	g_state.g_received_pid = info->si_pid;
+}
+
+static void	reset_state(int pid)
+{
+	g_state.buffer = NULL;
+	g_state.capacity = 0;
+	g_state.index = 0;
+	g_state.client_pid = pid;
+	g_state.bit = 0;
+	g_state.c = 0;
+}
+
+static void	process_signal(int sig, int pid)
+{
+	if (pid != g_state.client_pid)
 	{
-		g_state.client_pid = info->si_pid;
-		g_state.bit = 0;
-		g_state.c = 0;
-		if (g_state.str)
-			ft_free((void **)&g_state.str);
+		free(g_state.buffer);
+		reset_state(pid);
 	}
-	if (signum == SIGUSR1)
-		g_state.c = g_state.c & ~(1 << g_state.bit);
-	else if (signum == SIGUSR2)
-		g_state.c = g_state.c | (1 << g_state.bit);
-	g_state.bit++;
-	if (g_state.bit == 8)
+	if (sig == SIGUSR1)
+		g_state.c &= ~(1 << g_state.bit);
+	else if (sig == SIGUSR2)
+		g_state.c |= (1 << g_state.bit);
+	if (++g_state.bit == 8)
 	{
-		if (!next_char())
-			exit(0);
-		if (g_state.c == '\0')
-			print();
+		append_to_buffer(g_state.c);
+		if (g_state.c == '\0' && g_state.buffer)
+		{
+			ft_putstr_fd(g_state.buffer, 1);
+			free(g_state.buffer);
+			g_state.buffer = NULL;
+			g_state.index = 0;
+			g_state.capacity = 0;
+		}
 		g_state.c = 0;
 		g_state.bit = 0;
 	}
-	kill(info->si_pid, SIGUSR1);
+	kill(pid, SIGUSR1);
 }
 
 int	main(void)
 {
 	struct sigaction	sa;
+	int					sig;
+	int					pid;
 
 	ft_printf("%d\n", getpid());
 	sa.sa_sigaction = signal_handler;
 	sigemptyset(&sa.sa_mask);
 	sa.sa_flags = SA_SIGINFO;
+	sigaddset(&sa.sa_mask, SIGUSR1);
+	sigaddset(&sa.sa_mask, SIGUSR2);
 	sigaction(SIGUSR1, &sa, NULL);
 	sigaction(SIGUSR2, &sa, NULL);
-	g_state.str = NULL;
-	g_state.bit = 0;
-	g_state.c = 0;
+	reset_state(0);
 	while (1)
-		if (!sleep(30))
-			exit(0);
-	return (0);
+	{
+		if (g_state.g_received_sig != 0)
+		{
+			sig = g_state.g_received_sig;
+			pid = g_state.g_received_pid;
+			g_state.g_received_sig = 0;
+			process_signal(sig, pid);
+		}
+		else if (sleep(30) == 0)
+			break ;
+	}
 }
