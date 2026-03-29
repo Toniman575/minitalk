@@ -6,7 +6,7 @@
 /*   By: asadik <asadik@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/22 16:11:48 by asadik            #+#    #+#             */
-/*   Updated: 2026/03/27 19:50:21 by asadik           ###   ########.fr       */
+/*   Updated: 2026/03/29 17:51:09 by asadik           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@
 #include <signal.h>
 #include <stdbool.h>
 
-t_state	g_state;
+static t_state	g_state;
 
 static bool	next_char(void)
 {

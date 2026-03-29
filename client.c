@@ -6,7 +6,7 @@
 /*   By: asadik <asadik@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/22 17:07:30 by asadik            #+#    #+#             */
-/*   Updated: 2026/03/29 17:49:44 by asadik           ###   ########.fr       */
+/*   Updated: 2026/03/29 17:51:04 by asadik           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-t_state	g_state;
+static t_state	g_state;
 
 static void	send_char(int sig)
 {
