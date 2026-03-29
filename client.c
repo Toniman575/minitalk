@@ -6,7 +6,7 @@
 /*   By: asadik <asadik@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/22 17:07:30 by asadik            #+#    #+#             */
-/*   Updated: 2026/03/29 20:45:06 by asadik           ###   ########.fr       */
+/*   Updated: 2026/03/29 21:54:05 by asadik           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,6 +52,7 @@ static void	init_state(int server_pid, char *str)
 	g_state.c = 0;
 	g_state.str = str;
 	g_state.ack = 0;
+	g_state.idle = 0;
 	transmit_bit();
 }
 
@@ -90,10 +91,12 @@ int	main(int argc, char **argv)
 		if (g_state.ack)
 		{
 			g_state.ack = 0;
+			g_state.idle = 0;
 			if (transmit_bit())
 				break ;
 		}
-		else if (usleep(5000000) == 0)
+		usleep(100);
+		if (++g_state.idle > 50000)
 			return (ft_printf("No response from Server."));
 	}
 	return (0);

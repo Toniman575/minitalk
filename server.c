@@ -6,7 +6,7 @@
 /*   By: asadik <asadik@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/22 16:11:48 by asadik            #+#    #+#             */
-/*   Updated: 2026/03/29 21:27:53 by asadik           ###   ########.fr       */
+/*   Updated: 2026/03/29 21:56:27 by asadik           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,11 +47,12 @@ static void	append_to_buffer(char c)
 static void	signal_handler(int signum, siginfo_t *info, void *_)
 {
 	(void)_;
-	if ((g_state.client_pid != 0 && info->si_pid != g_state.client_pid) || g_state.busy)
+	if ((g_state.client_pid != 0 && info->si_pid != g_state.client_pid)
+		|| !g_state.idle)
 		return ;
 	g_state.received_sig = signum;
 	g_state.received_pid = info->si_pid;
-	g_state.busy = 1;
+	g_state.idle = 0;
 }
 
 static void	reset_state(int pid)
@@ -66,8 +67,6 @@ static void	reset_state(int pid)
 
 static void	process_signal(int sig, int pid)
 {
-	if (g_state.client_pid != 0 && pid != g_state.client_pid)
-		return ;
 	if (g_state.client_pid == 0)
 		g_state.client_pid = pid;
 	if (sig == SIGUSR1)
@@ -81,6 +80,7 @@ static void	process_signal(int sig, int pid)
 		{
 			ft_putstr_fd(g_state.buffer, 1);
 			free(g_state.buffer);
+			g_state.buffer = NULL;
 			reset_state(0);
 		}
 		else
@@ -89,7 +89,7 @@ static void	process_signal(int sig, int pid)
 			g_state.bit = 0;
 		}
 	}
-	g_state.busy = 0;
+	g_state.idle = 1;
 	g_state.received_sig = 0;
 	kill(pid, SIGUSR1);
 }
@@ -111,7 +111,12 @@ int	main(void)
 	{
 		if (g_state.received_sig != 0)
 			process_signal(g_state.received_sig, g_state.received_pid);
-		else
-			usleep(100);
+		usleep(100);
+		if (++g_state.idle > 200000)
+		{
+			if (g_state.buffer)
+				free(g_state.buffer);
+			return (0);
+		}
 	}
 }
