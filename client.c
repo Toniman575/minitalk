@@ -6,7 +6,7 @@
 /*   By: asadik <asadik@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/22 17:07:30 by asadik            #+#    #+#             */
-/*   Updated: 2026/03/29 20:03:58 by asadik           ###   ########.fr       */
+/*   Updated: 2026/03/29 20:45:06 by asadik           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,7 +93,7 @@ int	main(int argc, char **argv)
 			if (transmit_bit())
 				break ;
 		}
-		else if (sleep(5) == 0)
+		else if (usleep(5000000) == 0)
 			return (ft_printf("No response from Server."));
 	}
 	return (0);

@@ -6,7 +6,7 @@
 /*   By: asadik <asadik@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/22 16:11:48 by asadik            #+#    #+#             */
-/*   Updated: 2026/03/29 20:07:09 by asadik           ###   ########.fr       */
+/*   Updated: 2026/03/29 21:27:53 by asadik           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,8 +47,11 @@ static void	append_to_buffer(char c)
 static void	signal_handler(int signum, siginfo_t *info, void *_)
 {
 	(void)_;
-	g_state.g_received_sig = signum;
-	g_state.g_received_pid = info->si_pid;
+	if ((g_state.client_pid != 0 && info->si_pid != g_state.client_pid) || g_state.busy)
+		return ;
+	g_state.received_sig = signum;
+	g_state.received_pid = info->si_pid;
+	g_state.busy = 1;
 }
 
 static void	reset_state(int pid)
@@ -63,11 +66,10 @@ static void	reset_state(int pid)
 
 static void	process_signal(int sig, int pid)
 {
-	if (pid != g_state.client_pid)
-	{
-		free(g_state.buffer);
-		reset_state(pid);
-	}
+	if (g_state.client_pid != 0 && pid != g_state.client_pid)
+		return ;
+	if (g_state.client_pid == 0)
+		g_state.client_pid = pid;
 	if (sig == SIGUSR1)
 		g_state.c &= ~(1 << g_state.bit);
 	else if (sig == SIGUSR2)
@@ -79,41 +81,37 @@ static void	process_signal(int sig, int pid)
 		{
 			ft_putstr_fd(g_state.buffer, 1);
 			free(g_state.buffer);
-			g_state.buffer = NULL;
-			g_state.index = 0;
-			g_state.capacity = 0;
+			reset_state(0);
 		}
-		g_state.c = 0;
-		g_state.bit = 0;
+		else
+		{
+			g_state.c = 0;
+			g_state.bit = 0;
+		}
 	}
+	g_state.busy = 0;
+	g_state.received_sig = 0;
 	kill(pid, SIGUSR1);
 }
 
 int	main(void)
 {
 	struct sigaction	sa;
-	int					sig;
-	int					pid;
 
 	ft_printf("%d\n", getpid());
 	sa.sa_sigaction = signal_handler;
 	sigemptyset(&sa.sa_mask);
-	sa.sa_flags = SA_SIGINFO;
 	sigaddset(&sa.sa_mask, SIGUSR1);
 	sigaddset(&sa.sa_mask, SIGUSR2);
+	sa.sa_flags = SA_SIGINFO;
 	sigaction(SIGUSR1, &sa, NULL);
 	sigaction(SIGUSR2, &sa, NULL);
 	reset_state(0);
 	while (1)
 	{
-		if (g_state.g_received_sig != 0)
-		{
-			sig = g_state.g_received_sig;
-			pid = g_state.g_received_pid;
-			g_state.g_received_sig = 0;
-			process_signal(sig, pid);
-		}
-		else if (sleep(30) == 0)
-			break ;
+		if (g_state.received_sig != 0)
+			process_signal(g_state.received_sig, g_state.received_pid);
+		else
+			usleep(100);
 	}
 }
