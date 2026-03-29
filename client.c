@@ -6,7 +6,7 @@
 /*   By: asadik <asadik@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/22 17:07:30 by asadik            #+#    #+#             */
-/*   Updated: 2026/03/24 18:23:59 by asadik           ###   ########.fr       */
+/*   Updated: 2026/03/29 17:49:44 by asadik           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,19 +23,17 @@ t_state	g_state;
 
 static void	send_char(int sig)
 {
-	static char	c_to_send;
-
 	(void)sig;
 	if (g_state.bit == 0)
-		c_to_send = *g_state.str;
-	if ((c_to_send >> g_state.bit) & 1)
+		g_state.c = *g_state.str;
+	if ((g_state.c >> g_state.bit) & 1)
 		kill(g_state.server_pid, SIGUSR2);
 	else
 		kill(g_state.server_pid, SIGUSR1);
 	g_state.bit++;
 	if (g_state.bit == 8)
 	{
-		if (c_to_send == '\0')
+		if (g_state.c == '\0')
 			exit(0);
 		g_state.str++;
 		g_state.bit = 0;
@@ -56,6 +54,7 @@ int	main(int argc, char **argv)
 		if (g_state.server_pid <= 0)
 			return (ft_printf("Server PID Error: Please enter a PID > 0.\n"));
 		g_state.bit = 0;
+		g_state.c = 0;
 		g_state.str = argv[2];
 		send_char(SIGUSR1);
 	}
